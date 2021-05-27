@@ -68,7 +68,7 @@ public class RoleSetupActivity extends AppCompatActivity {
             intent.putStringArrayListExtra("PLAYER_LIST", playerList);
             startActivity(intent);
         } else {
-            Toast.makeText(getApplicationContext(), "Invalid values", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -105,9 +105,9 @@ public class RoleSetupActivity extends AppCompatActivity {
         }
         if (!existsCitizen) errorMessage = "Need at least 1 CITIZEN";
         else if (!existsInfiltrator) errorMessage = "Need at least 1 INFILTRATOR";
-        else if (minSumAlive > playerList.size()) errorMessage = "Minimum alive roles is too high";
+        else if (minSumAlive > playerList.size()) errorMessage = "Minimum living roles is too high";
         else if (minSumDead > playerList.size()) errorMessage = "Minimum dead roles is too high";
-        else if (maxSumAlive < playerList.size()) errorMessage = "Maximum alive roles is too low";
+        else if (maxSumAlive < playerList.size()) errorMessage = "Maximum living roles is too low";
         else if (maxSumDead < playerList.size()) errorMessage = "Maximum dead roles is too low";
 
         legal = legal && minSumAlive <= playerList.size() && maxSumAlive >= playerList.size();
