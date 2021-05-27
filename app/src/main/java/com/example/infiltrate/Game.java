@@ -154,12 +154,7 @@ public class Game {
      * @param targetName - The user who has been targeted.
      */
     public void setSelection(String playerName, String targetName) {
-        for (int i=data.size()-1;i>=0;i--) {
-            if (data.get(i).name.equals(playerName)) {
-                data.get(i).target = targetName;
-                break;
-            }
-        }
+        data.get(getPlayerSnapshotIndex(playerName)).target = targetName;
     }
 
     /**
@@ -212,6 +207,7 @@ public class Game {
             if (!s.done) {
                 return s;
             }
+
         }
         throw new AssertionError("Something Broke!");
     }
@@ -246,7 +242,7 @@ public class Game {
     private void killPlayer(String name) {
         // TODO: dead player gets to have one extra turn after being killed (bug)
         Snapshot ss = data.get(getPlayerSnapshotIndex(name));
-        ss.message = "\nYou have died. You now have a new role.";
+        ss.message += "\nYou have died. You now have a new role.";
         ss.role = drawRole(false,ss.role.isCitizen);
         ss.message += "\n"+ss.role.description;
     }
@@ -440,8 +436,9 @@ public class Game {
         }
 
         // Add the new empty snapshot for this player's next turn
-        data.add(new Snapshot(ss.name,ss.turn+1,ss.role));
-        ss.message += successMessage;
+        Snapshot nextss = new Snapshot(ss.name,ss.turn+1,ss.role);
+        nextss.message += successMessage;
+        data.add(nextss);
         ss.done = true; // Registers that the turn is over
 
     }

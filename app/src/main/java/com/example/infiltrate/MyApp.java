@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi;
 public class MyApp extends Application {
 
     public MyApp() {
+        /*
         StrictMode.enableDefaults();
         try {
             Class.forName("dalvik.system.CloseGuard")
@@ -17,7 +18,7 @@ public class MyApp extends Application {
                     .invoke(null, true);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
 }
