@@ -68,6 +68,7 @@ public class RoleSetupActivity extends AppCompatActivity {
             intent.putStringArrayListExtra("PLAYER_LIST", playerList);
             startActivity(intent);
         } else {
+            if (errorMessage.equals("")) errorMessage = "Invalid values";
             Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show();
         }
     }
@@ -91,6 +92,7 @@ public class RoleSetupActivity extends AppCompatActivity {
         for (Pair<Game.Role,int[]> i : roleRestrictions) {
             if (i.second[0]>i.second[1]) {
                 legal = false;
+                errorMessage = "Minimum is greater than maximum";
             }
             if (i.first.isAlive) {
                 minSumAlive += i.second[0];
