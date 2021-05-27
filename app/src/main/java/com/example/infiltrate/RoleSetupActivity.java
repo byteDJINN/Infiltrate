@@ -76,6 +76,7 @@ public class RoleSetupActivity extends AppCompatActivity {
      * 1. Minimum is less than maximum.
      * 2. Sum of minimum values is no more than the number of players.
      * 3. Sum of maximum values is at least the number of players.
+     * 4. There is at least one Infiltrator and one Citizen.
      * @return - whether or not the role restrictions are legal
      */
     public boolean isLegalRoleRestrictions() {
@@ -84,7 +85,8 @@ public class RoleSetupActivity extends AppCompatActivity {
         int maxSumAlive = 0;
         int minSumDead = 0;
         int maxSumDead = 0;
-
+        boolean existsInfiltrator = false;
+        boolean existsCitizen = false;
         for (Pair<Game.Role,int[]> i : roleRestrictions) {
             if (i.second[0]>i.second[1]) {
                 legal = false;
@@ -96,10 +98,13 @@ public class RoleSetupActivity extends AppCompatActivity {
                 minSumDead += i.second[0];
                 maxSumDead += i.second[1];
             }
+            if (i.first.equals(Game.Role.INFILTRATOR)) existsInfiltrator = true;
+            if (i.first.equals(Game.Role.CITIZEN)) existsCitizen = true;
 
         }
         legal = legal && minSumAlive <= playerList.size() && maxSumAlive >= playerList.size();
         legal = legal && minSumDead  <= playerList.size() && maxSumDead  >= playerList.size();
+        legal = legal && existsCitizen && existsInfiltrator;
         return legal;
     }
 }

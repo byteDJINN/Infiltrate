@@ -193,8 +193,8 @@ public class Game {
         boolean cLost = true;
         boolean iLost = true;
         for (String p : getPlayerNames()) {
-            if (getPlayerRole(p).isAlive&&getPlayerRole(p).isCitizen) cLost = false;
-            if (getPlayerRole(p).isAlive&&!getPlayerRole(p).isCitizen) iLost = false;
+            if (getPlayerRole(p).equals(Role.CITIZEN)) cLost = false;
+            if (getPlayerRole(p).equals(Role.INFILTRATOR)) iLost = false;
         }
         winningSide = cLost ? "INFILTRATORS" : iLost ? "CITIZENS" : "NOBODY";
         return cLost != iLost;
