@@ -21,25 +21,29 @@ public class Game {
      */
     public enum Role {
         INFILTRATOR(Type.LIVING_INFILTRATOR,
-                "Chance to murder someone.",-1),
+                "Murder someone.\nCan speak.",-1),
+        SPY(Type.LIVING_INFILTRATOR,
+                "Reveal someone's role to all infiltrators.\nCan speak.",0.7),
         SPECTRE(Type.DEAD_INFILTRATOR,
-                "Chance to decrease the number of turns until someone's next turn.",0.3),
+                "Kill someone who targeted you while you were alive.\nCannot speak.",0.3),
         PHANTOM(Type.DEAD_INFILTRATOR,
-                "Chance to randomly change the target of some citizen.",0.3),
+                "Randomly change the target of some citizen.\nCannot speak.",0.3),
         WRAITH(Type.DEAD_INFILTRATOR,
-                "Chance to scramble selections of everyone targeting some infiltrator.",0.3),
+                "Scramble selections of everyone targeting some infiltrator.\nCannot speak.",0.3),
         CITIZEN(Type.LIVING_CITIZEN,
-                "Chance to lynch someone.",-1),
+                "Lynch someone.\nCan speak.",-1),
+        PSYCHIC(Type.LIVING_CITIZEN,
+                "Identify someone's role.\nCan speak.",0.7),
         EXORCIST(Type.LIVING_CITIZEN,
-                "Chance to change the role of someone dead.",0.3),
-        APPARITION(Type.DEAD_CITIZEN,
-                "Chance to decrease number of turns until some dead person's next turn.",0.3),
+                "Change the role of someone dead.\nCan speak.",0.7),
         GHOST(Type.DEAD_CITIZEN,
-                "Chance to reveal someone's role to a random person.",0.3),
-        POLTERGEIST(Type.DEAD_CITIZEN,
-                "Chance to shuffle someone's turn to a random later point.",0.3),
+                "Reveal someone's role to a random person.\nCannot speak.",0.3),
         UNDEAD(Type.DEAD_CITIZEN,
-                "Can speak. Chance to lynch someone.",-1);
+                "Lynch someone.\nCan speak.",-1),
+        APPARITION(Type.DEAD_CITIZEN,
+                "Decrease number of turns until someone's next turn.\nCannot speak.",0.3),
+        POLTERGEIST(Type.DEAD_CITIZEN,
+                "Shuffle someone's turn to a random later point.\nCannot speak.",0.3);
 
         public boolean isAlive;
         public boolean isCitizen;
@@ -240,11 +244,12 @@ public class Game {
     }
 
     private void killPlayer(String name) {
-        // TODO: dead player gets to have one extra turn after being killed (bug)
         Snapshot ss = data.get(getPlayerSnapshotIndex(name));
-        ss.message += "\nYou have died. You now have a new role.";
-        ss.role = drawRole(false,ss.role.isCitizen);
-        ss.message += "\n"+ss.role.description;
+        // Calculate the new snapshot
+        Snapshot nss = new Snapshot(ss.name,ss.turn,drawRole(false,ss.role.isCitizen));
+        nss.message += "\nYou have died.\nYou now have a new role.";
+        nss.message += ss.message.replace(ss.role.description,"");
+        data.set(getPlayerSnapshotIndex(name),nss); // assign new snapshot
     }
 
     private ArrayList<Role> getRolePool(boolean isAlive, boolean isCitizen) {
@@ -285,13 +290,15 @@ public class Game {
         switch (getPlayerRole(playerName))  {
             case POLTERGEIST:
             case GHOST:
-            case SPECTRE:
+            case APPARITION:
                 for (String p : getPlayerNames()) {
                     legalTargets.add(p);
                 }
                 break;
             case UNDEAD:
             case CITIZEN:
+            case SPY:
+            case PSYCHIC:
                 for (String p : getPlayerNames()) {
                     if (getPlayerRole(p).isAlive) { legalTargets.add(p); }
                 }
@@ -301,7 +308,12 @@ public class Game {
                     if (getPlayerRole(p).isAlive && getPlayerRole(p).isCitizen) { legalTargets.add(p); }
                 }
                 break;
-            case APPARITION:
+            case SPECTRE:
+                for (Snapshot ss : data) {
+                    if (ss.target.equals(playerName)&&!legalTargets.contains(ss.name)&&ss.role.isAlive) {
+                        legalTargets.add(ss.name);
+                    }
+                }
             case EXORCIST:
                 for (String p : getPlayerNames()) {
                     if (!getPlayerRole(p).isAlive) { legalTargets.add(p); }
@@ -333,7 +345,7 @@ public class Game {
     public void doTurn() {
 
         Snapshot ss = getCurrentSnapshot();
-        String successMessage = ""; // added to the current player's messages
+        String successMessage = "\nNo target was selected."; // added to the current player's messages
 
         if (!ss.target.equals("")) {
             switch (ss.role) {
@@ -347,7 +359,7 @@ public class Game {
 
                     if (getRandomBoolean(1.0/(c+1))) {
                         killPlayer(ss.target);
-                        successMessage += "\nSuccess on "+ss.target;
+                        successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
                 case INFILTRATOR: {
@@ -358,9 +370,27 @@ public class Game {
                     }
                     if (getRandomBoolean(1.0/(i+1))) {
                         killPlayer(ss.target);
-                        successMessage += "\nSuccess on "+ss.target;
+                        successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;}
+                case PSYCHIC:
+                    if (getRandomBoolean(Role.PSYCHIC.probability)) {
+                        successMessage = "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
+                        successMessage += "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
+                case SPY:
+                    if (getRandomBoolean(Role.SPY.probability)) {
+                        for (String playerName : getPlayerNames()) {
+                            if (!getPlayerRole(playerName).isCitizen&&playerName!=ss.name) {
+                                data.get(getPlayerSnapshotIndex(playerName)).message +=
+                                        "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
+                            }
+                        }
+                        successMessage = "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
+                        successMessage += "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
                 case POLTERGEIST:
                     if (getRandomBoolean(Role.POLTERGEIST.probability)) {
                         int ti = getPlayerSnapshotIndex(ss.target);
@@ -374,7 +404,7 @@ public class Game {
                         ArrayList<String> names = getPlayerNames();
                         int i = getPlayerSnapshotIndex(names.get(getRandom(0, names.size() - 1)));
                         data.get(i).message += "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
-                        successMessage += "\nSuccess on "+ss.target;
+                        successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
                 case APPARITION:
@@ -384,17 +414,13 @@ public class Game {
                         int i = getRandom(0,ti-ci);
                         data.add(i+ci,data.get(ti));
                         data.remove(ti);
-                        successMessage += "\nSuccess on "+ss.target;
+                        successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
                 case SPECTRE:
                     if (getRandomBoolean(Role.SPECTRE.probability)) {
-                        int ti = getPlayerSnapshotIndex(ss.target);
-                        int ci = getPlayerSnapshotIndex(ss.name);
-                        int i = getRandom(0,ti-ci);
-                        data.add(i+ci,data.get(ti));
-                        data.remove(ti);
-                        successMessage += "\nSuccess on "+ss.target;
+                        killPlayer(ss.target);
+                        successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
 
@@ -405,14 +431,14 @@ public class Game {
                         data.get(i).role = drawRole(false,data.get(i).role.isCitizen);
                         getRolePool(false,data.get(i).role.isCitizen).add(prevRole);
 
-                        successMessage += "\nSuccess on "+ss.target;
+                        successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
                 case PHANTOM:
                     if (getRandomBoolean(Role.PHANTOM.probability)) {
                         int i = getPlayerSnapshotIndex(ss.target);
                         data.get(i).target = getLegalTargets(data.get(i).name).get(getRandom(0,getLegalTargets(data.get(i).name).size()-1));
-                        successMessage += "\nSuccess on "+ss.target;
+                        successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
 
@@ -424,7 +450,7 @@ public class Game {
                                 data.get(index).target = getLegalTargets(data.get(index).name).get(getRandom(0,getLegalTargets(data.get(index).name).size()-1));
                             }
                         }
-                        successMessage += "\nSuccess on "+ss.target;
+                        successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
 

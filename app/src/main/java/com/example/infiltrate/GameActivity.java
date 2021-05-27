@@ -74,14 +74,15 @@ public class GameActivity extends AppCompatActivity {
         if (selectedId != -1) {
             // find the radiobutton by returned id
             RadioButton selectedRadioButton = (RadioButton) findViewById(selectedId);
+            // Register the selection with the Game class
+            g.setSelection(g.getCurrentPlayerName(), selectedRadioButton.getText().toString());
             // Do any necessary actions
             g.doTurn();
             // Check win
             if (g.checkWin()) {
                 endGame(g.getWinningSide());
             }
-            // Register the selection with the Game class
-            g.setSelection(g.getCurrentPlayerName(), selectedRadioButton.getText().toString());
+
 
             // Update the layout
             updateLayout();
