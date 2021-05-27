@@ -20,6 +20,7 @@ public class RoleSetupActivity extends AppCompatActivity {
     ArrayList<Pair<Game.Role,int[]>> roleRestrictions = new ArrayList<Pair<Game.Role,int[]>>();
     ArrayList<String> playerList = new ArrayList<String>();
     RoleListAdapter rvAdapter;
+    String errorMessage = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,10 +99,17 @@ public class RoleSetupActivity extends AppCompatActivity {
                 minSumDead += i.second[0];
                 maxSumDead += i.second[1];
             }
-            if (i.first.equals(Game.Role.INFILTRATOR)) existsInfiltrator = true;
-            if (i.first.equals(Game.Role.CITIZEN)) existsCitizen = true;
+            if (i.first.equals(Game.Role.INFILTRATOR)&&i.second[0]>0) existsInfiltrator = true;
+            if (i.first.equals(Game.Role.CITIZEN)&&i.second[0]>0) existsCitizen = true;
 
         }
+        if (!existsCitizen) errorMessage = "Need at least 1 CITIZEN";
+        else if (!existsInfiltrator) errorMessage = "Need at least 1 INFILTRATOR";
+        else if (minSumAlive > playerList.size()) errorMessage = "Minimum alive roles is too high";
+        else if (minSumDead > playerList.size()) errorMessage = "Minimum dead roles is too high";
+        else if (maxSumAlive < playerList.size()) errorMessage = "Maximum alive roles is too low";
+        else if (maxSumDead < playerList.size()) errorMessage = "Maximum dead roles is too low";
+
         legal = legal && minSumAlive <= playerList.size() && maxSumAlive >= playerList.size();
         legal = legal && minSumDead  <= playerList.size() && maxSumDead  >= playerList.size();
         legal = legal && existsCitizen && existsInfiltrator;
