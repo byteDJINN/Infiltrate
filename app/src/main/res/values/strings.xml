@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Infiltrate</string>
+    <string name="wiki_link_string"><a href="https://github.com/Elodin77/Infiltrate/wiki/Overview">Help</a></string>>
 </resources>

@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
@@ -16,6 +17,10 @@ public class TitleScreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_title_screen);
 
+        // Setup hyperlink
+        TextView linkTextView = findViewById(R.id.wiki_link);
+        linkTextView.setMovementMethod(LinkMovementMethod.getInstance());
+
         if (getIntent().getStringExtra("WINNING_SIDE") != null) {
             winningSide = getIntent().getStringExtra("WINNING_SIDE");
             TextView winningSideTextView = (TextView)findViewById(R.id.winning_side);
@@ -27,4 +32,5 @@ public class TitleScreenActivity extends AppCompatActivity {
     public void onPlayBtnClicked(View v) {
         startActivity(new Intent(TitleScreenActivity.this, PlayerSetupActivity.class));
     }
+
 }
