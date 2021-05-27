@@ -67,24 +67,23 @@ public class GameActivity extends AppCompatActivity {
      * Called when the end turn button is clicked.
      * @param v - The view passed from the onClick function of the button.
      */
-    public void nextTurn(View v) {
+    public void nextTurn(View v) { // Happens on End Turn button click
         RadioGroup rg = findViewById(R.id.target_radio_group); // get the RadioGroup
         // get selected radio button from radioGroup
         int selectedId = rg.getCheckedRadioButtonId();
         if (selectedId != -1) {
             // find the radiobutton by returned id
             RadioButton selectedRadioButton = (RadioButton) findViewById(selectedId);
+
             // Register the selection with the Game class
             g.setSelection(g.getCurrentPlayerName(), selectedRadioButton.getText().toString());
-            // Do any necessary actions
+            // Do any necessary actions and end the player's turn
             g.doTurn();
             // Check win
-            if (g.checkWin()) {
-                endGame(g.getWinningSide());
-            }
-
-
-            // Update the layout
+            if (g.checkWin()) endGame(g.getWinningSide());
+            // Convert someone to an ordinary role if necessary
+            g.balance();
+            // Update the layout (BEGINNING OF NEW TURN BLOCK)
             updateLayout();
         } else {showRole(v);}
     }

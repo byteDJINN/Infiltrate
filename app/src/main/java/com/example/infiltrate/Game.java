@@ -193,11 +193,48 @@ public class Game {
         boolean cLost = true;
         boolean iLost = true;
         for (String p : getPlayerNames()) {
-            if (getPlayerRole(p).equals(Role.CITIZEN)) cLost = false;
-            if (getPlayerRole(p).equals(Role.INFILTRATOR)) iLost = false;
+            if (getPlayerRole(p).isAlive&&getPlayerRole(p).isCitizen) cLost = false;
+            if (getPlayerRole(p).isAlive&&!getPlayerRole(p).isCitizen) iLost = false;
         }
         winningSide = cLost ? "INFILTRATORS" : iLost ? "CITIZENS" : "NOBODY";
         return cLost != iLost;
+    }
+
+    /**
+     * Converts a non-ordinary citizen to an ordinary citizen if no ordinary citizens alive or a
+     * non-ordinary infiltrator to an ordinary infiltrator if no ordinary infiltrators alive.
+     */
+    public void balance() {
+        boolean citizenAlive = false;
+        boolean infiltratorAlive = false;
+        String nonOrdinaryCitizen = "";
+        String nonOrdinaryInfiltrator = "";
+        // Get a copy of the player name list
+        ArrayList<String> playerNames = new ArrayList<>(getPlayerNames());
+        Collections.shuffle(playerNames);
+        for (String name : playerNames) {
+            if (getPlayerRole(name).isCitizen&&getPlayerRole(name).isAlive&&!getPlayerRole(name).equals(Role.CITIZEN)) nonOrdinaryCitizen=name;
+            if (!getPlayerRole(name).isCitizen&&getPlayerRole(name).isAlive&&!getPlayerRole(name).equals(Role.INFILTRATOR)) nonOrdinaryInfiltrator=name;
+            if (getPlayerRole(name).equals(Role.CITIZEN)) citizenAlive = true;
+            if (getPlayerRole(name).equals(Role.INFILTRATOR)) infiltratorAlive = true;
+        }
+        if (!citizenAlive&&!nonOrdinaryCitizen.equals("")) {
+            Snapshot ss = data.get(getPlayerSnapshotIndex(nonOrdinaryCitizen));
+            // Calculate the new snapshot
+            Snapshot nss = new Snapshot(ss.name,ss.turn,Role.CITIZEN);
+            nss.message += "\nYou have taken the place of a dead CITIZEN.\nYou are now a CITIZEN.";
+            nss.message += ss.message.replace(ss.role.description,"");
+            data.set(getPlayerSnapshotIndex(nonOrdinaryCitizen),nss); // assign new snapshot
+
+        }
+        if (!infiltratorAlive&&!nonOrdinaryInfiltrator.equals("")) {
+            Snapshot ss = data.get(getPlayerSnapshotIndex(nonOrdinaryInfiltrator));
+            // Calculate the new snapshot
+            Snapshot nss = new Snapshot(ss.name,ss.turn,Role.INFILTRATOR);
+            nss.message += "\nYou have taken the place of a dead INFILTRATOR.\nYou are now an INFILTRATOR.";
+            nss.message += ss.message.replace(ss.role.description,"");
+            data.set(getPlayerSnapshotIndex(nonOrdinaryInfiltrator),nss); // assign new snapshot
+        }
     }
 
     // HELPER METHODS //
