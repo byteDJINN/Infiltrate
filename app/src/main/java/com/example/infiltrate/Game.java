@@ -90,6 +90,7 @@ public class Game {
      */
     Game(ArrayList<String> playerNames, ArrayList<Pair<Role,int[]>> roleRestrictions) {
         data = new ArrayList<>();
+        rolePool = new Pair<>(new Pair<>(new ArrayList<>(),new ArrayList<>()),new Pair<>(new ArrayList<>(),new ArrayList<>()));
 
         Collections.shuffle(playerNames);
         Collections.shuffle(roleRestrictions);
@@ -241,6 +242,7 @@ public class Game {
     }
 
     private void killPlayer(String name) {
+        // TODO: dead player gets to have one extra turn after being killed (bug)
         Snapshot ss = data.get(getPlayerSnapshotIndex(name));
         ss.message += "\nYou have died. You now have a new role.";
         ss.role = drawRole(false,ss.role.isCitizen);
