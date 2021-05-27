@@ -21,35 +21,37 @@ public class Game {
      */
     public enum Role {
         INFILTRATOR(Type.LIVING_INFILTRATOR,
-                "Chance to murder someone."),
+                "Chance to murder someone.",-1),
         SPECTRE(Type.DEAD_INFILTRATOR,
-                "Chance to decrease the number of turns until someone's next turn."),
+                "Chance to decrease the number of turns until someone's next turn.",0.3),
         PHANTOM(Type.DEAD_INFILTRATOR,
-                "Chance to randomly change the target of some citizen."),
+                "Chance to randomly change the target of some citizen.",0.3),
         WRAITH(Type.DEAD_INFILTRATOR,
-                "Chance to scramble selections of everyone targeting some infiltrator."),
+                "Chance to scramble selections of everyone targeting some infiltrator.",0.3),
         CITIZEN(Type.LIVING_CITIZEN,
-                "Chance to lynch someone."),
+                "Chance to lynch someone.",-1),
         EXORCIST(Type.LIVING_CITIZEN,
-                "Chance to change the role of someone dead."),
+                "Chance to change the role of someone dead.",0.3),
         APPARITION(Type.DEAD_CITIZEN,
-                "Chance to decrease number of turns until some dead person's next turn."),
+                "Chance to decrease number of turns until some dead person's next turn.",0.3),
         GHOST(Type.DEAD_CITIZEN,
-                "Chance to reveal someone's role to a random person."),
+                "Chance to reveal someone's role to a random person.",0.3),
         POLTERGEIST(Type.DEAD_CITIZEN,
-                "Chance to shuffle someone's turn to a random later point."),
+                "Chance to shuffle someone's turn to a random later point.",0.3),
         UNDEAD(Type.DEAD_CITIZEN,
-                "Can speak. Chance to lynch someone.");
+                "Can speak. Chance to lynch someone.",-1);
 
         public boolean isAlive;
         public boolean isCitizen;
         public String description;
-        Role(Type t,String desc) {
+        public double probability;
+        Role(Type t,String desc,double probability) {
             this.isAlive = t.ordinal() == Type.LIVING_CITIZEN.ordinal() ||
                     t.ordinal() == Type.LIVING_INFILTRATOR.ordinal();
             this.isCitizen = t.ordinal() == Type.LIVING_CITIZEN.ordinal() ||
                     t.ordinal() == Type.DEAD_CITIZEN.ordinal();
             this.description = desc;
+            this.probability = probability;
         }
 
         private enum Type {
@@ -244,7 +246,7 @@ public class Game {
     private void killPlayer(String name) {
         // TODO: dead player gets to have one extra turn after being killed (bug)
         Snapshot ss = data.get(getPlayerSnapshotIndex(name));
-        ss.message += "\nYou have died. You now have a new role.";
+        ss.message = "\nYou have died. You now have a new role.";
         ss.role = drawRole(false,ss.role.isCitizen);
         ss.message += "\n"+ss.role.description;
     }
@@ -339,33 +341,6 @@ public class Game {
 
         if (!ss.target.equals("")) {
             switch (ss.role) {
-                case POLTERGEIST:
-                    if (getRandomBoolean(0.3)) {
-                        int ti = getPlayerSnapshotIndex(ss.target);
-                        data.add(getRandom(ti + 1, data.size() - 1), data.get(ti));
-                        data.remove(ti);
-                        successMessage = "\nSuccess on "+ss.target;
-                    } else { successMessage = "\nFailure on "+ss.target; }
-                    break;
-                case GHOST:
-                    if (getRandomBoolean(0.3)) {
-                        ArrayList<String> names = getPlayerNames();
-                        int i = getPlayerSnapshotIndex(names.get(getRandom(0, names.size() - 1)));
-                        data.get(i).message += "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
-                        successMessage += "\nSuccess on "+ss.target;
-                    } else { successMessage = "\nFailure on "+ss.target; }
-                    break;
-                case APPARITION:
-                case SPECTRE:
-                    if (getRandomBoolean(0.3)) {
-                        int ti = getPlayerSnapshotIndex(ss.target);
-                        int ci = getPlayerSnapshotIndex(ss.name);
-                        int i = getRandom(0,ti-ci);
-                        data.add(i+ci,data.get(ti));
-                        data.remove(ti);
-                        successMessage += "\nSuccess on "+ss.target;
-                    } else { successMessage = "\nFailure on "+ss.target; }
-                    break;
                 case UNDEAD:
                 case CITIZEN:
                     // Calculate number of citizens
@@ -379,25 +354,7 @@ public class Game {
                         successMessage += "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
-
-                case EXORCIST:
-                    if (getRandomBoolean(0.3)) {
-                        int i = getPlayerSnapshotIndex(ss.target);
-                        Role prevRole = data.get(i).role;
-                        data.get(i).role = drawRole(false,data.get(i).role.isCitizen);
-                        getRolePool(false,data.get(i).role.isCitizen).add(prevRole);
-
-                        successMessage += "\nSuccess on "+ss.target;
-                    } else { successMessage = "\nFailure on "+ss.target; }
-                    break;
-                case PHANTOM:
-                    if (getRandomBoolean(0.3)) {
-                        int i = getPlayerSnapshotIndex(ss.target);
-                        data.get(i).target = getLegalTargets(data.get(i).name).get(getRandom(0,getLegalTargets(data.get(i).name).size()-1));
-                        successMessage += "\nSuccess on "+ss.target;
-                    } else { successMessage = "\nFailure on "+ss.target; }
-                    break;
-                case INFILTRATOR:
+                case INFILTRATOR: {
                     // Calculate number of infiltrators
                     int i = 0;
                     for (String name : getPlayerNames()) {
@@ -407,9 +364,64 @@ public class Game {
                         killPlayer(ss.target);
                         successMessage += "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
+                    break;}
+                case POLTERGEIST:
+                    if (getRandomBoolean(Role.POLTERGEIST.probability)) {
+                        int ti = getPlayerSnapshotIndex(ss.target);
+                        data.add(getRandom(ti + 1, data.size() - 1), data.get(ti));
+                        data.remove(ti);
+                        successMessage = "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
                     break;
+                case GHOST:
+                    if (getRandomBoolean(Role.GHOST.probability)) {
+                        ArrayList<String> names = getPlayerNames();
+                        int i = getPlayerSnapshotIndex(names.get(getRandom(0, names.size() - 1)));
+                        data.get(i).message += "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
+                        successMessage += "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
+                case APPARITION:
+                    if (getRandomBoolean(Role.APPARITION.probability)) {
+                        int ti = getPlayerSnapshotIndex(ss.target);
+                        int ci = getPlayerSnapshotIndex(ss.name);
+                        int i = getRandom(0,ti-ci);
+                        data.add(i+ci,data.get(ti));
+                        data.remove(ti);
+                        successMessage += "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
+                case SPECTRE:
+                    if (getRandomBoolean(Role.SPECTRE.probability)) {
+                        int ti = getPlayerSnapshotIndex(ss.target);
+                        int ci = getPlayerSnapshotIndex(ss.name);
+                        int i = getRandom(0,ti-ci);
+                        data.add(i+ci,data.get(ti));
+                        data.remove(ti);
+                        successMessage += "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
+
+                case EXORCIST:
+                    if (getRandomBoolean(Role.EXORCIST.probability)) {
+                        int i = getPlayerSnapshotIndex(ss.target);
+                        Role prevRole = data.get(i).role;
+                        data.get(i).role = drawRole(false,data.get(i).role.isCitizen);
+                        getRolePool(false,data.get(i).role.isCitizen).add(prevRole);
+
+                        successMessage += "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
+                case PHANTOM:
+                    if (getRandomBoolean(Role.PHANTOM.probability)) {
+                        int i = getPlayerSnapshotIndex(ss.target);
+                        data.get(i).target = getLegalTargets(data.get(i).name).get(getRandom(0,getLegalTargets(data.get(i).name).size()-1));
+                        successMessage += "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
+
                 case WRAITH:
-                    if (getRandomBoolean(0.3)) {
+                    if (getRandomBoolean(Role.WRAITH.probability)) {
                         for (String name : getPlayerNames()) {
                             int index = getPlayerSnapshotIndex(name);
                             if (data.get(index).target.equals(ss.target)) {
