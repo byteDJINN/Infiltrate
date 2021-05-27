@@ -23,7 +23,7 @@ public class Game {
         INFILTRATOR(Type.LIVING_INFILTRATOR,
                 "Chance to murder someone."),
         SPECTRE(Type.DEAD_INFILTRATOR,
-                "Chance to decrease number of turns until someone's next turn."),
+                "Chance to decrease the number of turns until someone's next turn."),
         PHANTOM(Type.DEAD_INFILTRATOR,
                 "Chance to randomly change the target of some citizen."),
         WRAITH(Type.DEAD_INFILTRATOR,

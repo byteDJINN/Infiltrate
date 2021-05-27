@@ -70,27 +70,29 @@ public class RoleSetupActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Invalid values", Toast.LENGTH_SHORT).show();
         }
     }
+
+    /**
+     * Checks for legal restrictions according to the following criteria:
+     * 1. Minimum is less than maximum.
+     * 2. Sum of minimum values is no more than the number of players.
+     * 3. Sum of maximum values is at least the number of players.
+     * @return - whether or not the role restrictions are legal
+     */
     public boolean isLegalRoleRestrictions() {
         boolean legal = true;
         int minSumAlive = 0;
         int maxSumAlive = 0;
         int minSumDead = 0;
         int maxSumDead = 0;
-        int infiltrators = 0;
-        int citizens = 0;
 
         for (Pair<Game.Role,int[]> i : roleRestrictions) {
             if (i.second[0]>i.second[1]) {
                 legal = false;
             }
             if (i.first.isAlive) {
-                if (i.first.isCitizen) citizens+=i.second[1];
-                else infiltrators+=i.second[1];
                 minSumAlive += i.second[0];
                 maxSumAlive += i.second[1];
             } else {
-                if (i.first.isCitizen) citizens-=i.second[1];
-                else infiltrators-=i.second[1];
                 minSumDead += i.second[0];
                 maxSumDead += i.second[1];
             }
@@ -98,7 +100,6 @@ public class RoleSetupActivity extends AppCompatActivity {
         }
         legal = legal && minSumAlive <= playerList.size() && maxSumAlive >= playerList.size();
         legal = legal && minSumDead  <= playerList.size() && maxSumDead  >= playerList.size();
-        legal = legal && citizens <= 0 && infiltrators <= 0;
         return legal;
     }
 }
