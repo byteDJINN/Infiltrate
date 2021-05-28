@@ -358,6 +358,7 @@ public class Game {
                         legalTargets.add(ss.name);
                     }
                 }
+                break;
             case EXORCIST:
                 for (String p : getPlayerNames()) {
                     if (!getPlayerRole(p).isAlive) { legalTargets.add(p); }
