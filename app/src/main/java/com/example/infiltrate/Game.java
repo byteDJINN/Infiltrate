@@ -26,6 +26,8 @@ public class Game {
                 "Reveal someone's role to all infiltrators.\nCan speak.",0.7),
         BLIND_SPY(Type.LIVING_INFILTRATOR,
                 "Reveal someone's role to all infiltrators except yourself.\nCan speak.",0.7),
+        SILENCER(Type.LIVING_INFILTRATOR,
+                "Mute someone.\nCan speak.",0.7),
         SPECTRE(Type.DEAD_INFILTRATOR,
                 "Kill someone who targeted you in the past.\nCannot speak.",0.3),
         WRAITH(Type.DEAD_INFILTRATOR,
@@ -344,6 +346,7 @@ public class Game {
                     if (getPlayerRole(p).isAlive) { legalTargets.add(p); }
                 }
                 break;
+            case SILENCER:
             case INFILTRATOR:
                 for (String p : getPlayerNames()) {
                     if (getPlayerRole(p).isAlive && getPlayerRole(p).isCitizen) { legalTargets.add(p); }
@@ -414,6 +417,14 @@ public class Game {
                         successMessage = "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;}
+                case SILENCER:
+                    if (getRandomBoolean(Role.SILENCER.probability)) {
+                        data.get(getPlayerSnapshotIndex(ss.target)).message =
+                                data.get(getPlayerSnapshotIndex(ss.target)).message
+                                        .replace("Can speak","Cannot speak");
+                        successMessage = "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
                 case PSYCHIC:
                     if (getRandomBoolean(Role.PSYCHIC.probability)) {
                         successMessage = "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
