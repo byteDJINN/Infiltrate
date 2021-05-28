@@ -25,25 +25,26 @@ public class Game {
         SPY(Type.LIVING_INFILTRATOR,
                 "Reveal someone's role to all infiltrators.\nCan speak.",0.7),
         SPECTRE(Type.DEAD_INFILTRATOR,
-                "Kill someone who targeted you while you were alive.\nCannot speak.",0.3),
-        PHANTOM(Type.DEAD_INFILTRATOR,
-                "Randomly change the target of some citizen.\nCannot speak.",0.3),
+                "Kill someone who targeted you in the past.\nCannot speak.",0.3),
         WRAITH(Type.DEAD_INFILTRATOR,
                 "Scramble selections of everyone targeting some infiltrator.\nCannot speak.",0.3),
+        PHANTOM(Type.DEAD_INFILTRATOR,
+                "Randomly change the target of some citizen.\nCannot speak.",0.3),
         CITIZEN(Type.LIVING_CITIZEN,
                 "Lynch someone.\nCan speak.",-1),
         PSYCHIC(Type.LIVING_CITIZEN,
                 "Identify someone's role.\nCan speak.",0.7),
         EXORCIST(Type.LIVING_CITIZEN,
                 "Change the role of someone dead.\nCan speak.",0.7),
-        GHOST(Type.DEAD_CITIZEN,
-                "Reveal someone's role to a random person.\nCannot speak.",0.3),
         UNDEAD(Type.DEAD_CITIZEN,
                 "Lynch someone.\nCan speak.",-1),
-        APPARITION(Type.DEAD_CITIZEN,
-                "Decrease number of turns until someone's next turn.\nCannot speak.",0.3),
+        GHOST(Type.DEAD_CITIZEN,
+                "Reveal someone's role to a random person.\nCannot speak.",0.3),
         POLTERGEIST(Type.DEAD_CITIZEN,
-                "Shuffle someone's turn to a random later point.\nCannot speak.",0.3);
+                "Shuffle someone's turn to a random later point.\nCannot speak.",0.3),
+        APPARITION(Type.DEAD_CITIZEN,
+                "Decrease number of turns until someone's next turn.\nCannot speak.",0.3);
+
 
         public boolean isAlive;
         public boolean isCitizen;
@@ -347,7 +348,7 @@ public class Game {
                 break;
             case SPECTRE:
                 for (Snapshot ss : data) {
-                    if (ss.target.equals(playerName)&&!legalTargets.contains(ss.name)&&ss.role.isAlive) {
+                    if (ss.target.equals(playerName)&&!legalTargets.contains(ss.name)&&getPlayerRole(ss.name).isAlive) {
                         legalTargets.add(ss.name);
                     }
                 }
