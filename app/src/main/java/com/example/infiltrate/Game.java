@@ -24,6 +24,8 @@ public class Game {
                 "Murder someone.\nCan speak.",-1),
         SPY(Type.LIVING_INFILTRATOR,
                 "Reveal someone's role to all infiltrators.\nCan speak.",0.7),
+        BLIND_SPY(Type.LIVING_INFILTRATOR,
+                "Reveal someone's role to all infiltrators except yourself.\nCan speak.",0.7),
         SPECTRE(Type.DEAD_INFILTRATOR,
                 "Kill someone who targeted you in the past.\nCannot speak.",0.3),
         WRAITH(Type.DEAD_INFILTRATOR,
@@ -336,6 +338,7 @@ public class Game {
             case UNDEAD:
             case CITIZEN:
             case SPY:
+            case BLIND_SPY:
             case PSYCHIC:
                 for (String p : getPlayerNames()) {
                     if (getPlayerRole(p).isAlive) { legalTargets.add(p); }
@@ -426,6 +429,17 @@ public class Game {
                             }
                         }
                         successMessage = "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
+                        successMessage += "\nSuccess on "+ss.target;
+                    } else { successMessage = "\nFailure on "+ss.target; }
+                    break;
+                case BLIND_SPY:
+                    if (getRandomBoolean(Role.BLIND_SPY.probability)) {
+                        for (String playerName : getPlayerNames()) {
+                            if (!getPlayerRole(playerName).isCitizen&&playerName!=ss.name) {
+                                data.get(getPlayerSnapshotIndex(playerName)).message +=
+                                        "\n" + ss.target + " has role " + getPlayerRole(ss.target).name();
+                            }
+                        }
                         successMessage += "\nSuccess on "+ss.target;
                     } else { successMessage = "\nFailure on "+ss.target; }
                     break;
