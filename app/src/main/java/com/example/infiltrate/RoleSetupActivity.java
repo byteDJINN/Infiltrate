@@ -79,14 +79,19 @@ public class RoleSetupActivity extends AppCompatActivity {
      * 2. Sum of minimum values is no more than the number of players.
      * 3. Sum of maximum values is at least the number of players.
      * 4. There is at least one Infiltrator and one Citizen.
+     * 5. Sum of max dead > max living for each side.
      * @return - whether or not the role restrictions are legal
      */
     public boolean isLegalRoleRestrictions() {
         boolean legal = true;
-        int minSumAlive = 0;
-        int maxSumAlive = 0;
-        int minSumDead = 0;
-        int maxSumDead = 0;
+        int minSumAliveCitizen = 0;
+        int maxSumAliveCitizen = 0;
+        int minSumDeadCitizen = 0;
+        int maxSumDeadCitizen = 0;
+        int minSumAliveInfiltrator = 0;
+        int maxSumAliveInfiltrator = 0;
+        int minSumDeadInfiltrator = 0;
+        int maxSumDeadInfiltrator = 0;
         boolean existsInfiltrator = false;
         boolean existsCitizen = false;
         for (Pair<Game.Role,int[]> i : roleRestrictions) {
@@ -95,25 +100,43 @@ public class RoleSetupActivity extends AppCompatActivity {
                 errorMessage = "Minimum is greater than maximum";
             }
             if (i.first.isAlive) {
-                minSumAlive += i.second[0];
-                maxSumAlive += i.second[1];
+                if (i.first.isCitizen) {
+                    minSumAliveCitizen += i.second[0];
+                    maxSumAliveCitizen += i.second[1];
+                } else {
+                    minSumAliveInfiltrator += i.second[0];
+                    maxSumAliveInfiltrator += i.second[1];
+                }
             } else {
-                minSumDead += i.second[0];
-                maxSumDead += i.second[1];
+                if (i.first.isCitizen) {
+                    minSumDeadCitizen += i.second[0];
+                    maxSumDeadCitizen += i.second[1];
+                } else {
+                    minSumDeadInfiltrator += i.second[0];
+                    maxSumDeadInfiltrator += i.second[1];
+                }
             }
             if (i.first.equals(Game.Role.INFILTRATOR)&&i.second[0]>0) existsInfiltrator = true;
             if (i.first.equals(Game.Role.CITIZEN)&&i.second[0]>0) existsCitizen = true;
 
         }
+        int minSumAlive = minSumAliveCitizen + minSumAliveInfiltrator;
+        int minSumDead = minSumDeadCitizen + minSumDeadInfiltrator;
+        int maxSumAlive = maxSumAliveCitizen + maxSumAliveInfiltrator;
+        int maxSumDead = maxSumDeadCitizen + maxSumDeadInfiltrator;
+
         if (!existsCitizen) errorMessage = "Need at least 1 CITIZEN";
         else if (!existsInfiltrator) errorMessage = "Need at least 1 INFILTRATOR";
         else if (minSumAlive > playerList.size()) errorMessage = "Minimum living roles is too high";
         else if (minSumDead > playerList.size()) errorMessage = "Minimum dead roles is too high";
         else if (maxSumAlive < playerList.size()) errorMessage = "Maximum living roles is too low";
         else if (maxSumDead < playerList.size()) errorMessage = "Maximum dead roles is too low";
+        else if (maxSumDeadCitizen < maxSumAliveCitizen) errorMessage = "Maximum dead citizen roles too low";
+        else if (maxSumDeadInfiltrator < maxSumAliveInfiltrator) errorMessage = "Maximum dead infiltrator roles too low";
 
         legal = legal && minSumAlive <= playerList.size() && maxSumAlive >= playerList.size();
         legal = legal && minSumDead  <= playerList.size() && maxSumDead  >= playerList.size();
+        legal = legal && maxSumDeadCitizen >= maxSumAliveCitizen && maxSumDeadInfiltrator >= maxSumAliveInfiltrator;
         legal = legal && existsCitizen && existsInfiltrator;
         return legal;
     }
