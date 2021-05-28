@@ -22,6 +22,8 @@ public class RoleListAdapter extends RecyclerView.Adapter<RoleListAdapter.ViewHo
      */
     public class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView textView;
+        private final EditText minEditText;
+        private final EditText maxEditText;
 
         private TextWatcher minTextWatcher = new TextWatcher() {
             public void afterTextChanged(Editable s) {}
@@ -57,8 +59,8 @@ public class RoleListAdapter extends RecyclerView.Adapter<RoleListAdapter.ViewHo
             // Define click listener for the ViewHolder's View
 
             textView = (TextView) view.findViewById(R.id.role_list_item_string);
-            EditText minEditText = (EditText) view.findViewById(R.id.min);
-            EditText maxEditText = (EditText) view.findViewById(R.id.max);
+            minEditText = (EditText) view.findViewById(R.id.min);
+            maxEditText = (EditText) view.findViewById(R.id.max);
 
             minEditText.addTextChangedListener(minTextWatcher);
             maxEditText.addTextChangedListener(maxTextWatcher);
@@ -69,6 +71,9 @@ public class RoleListAdapter extends RecyclerView.Adapter<RoleListAdapter.ViewHo
         public TextView getTextView() {
             return textView;
         }
+        public EditText getMinEditText() { return minEditText; }
+        public EditText getMaxEditText() { return maxEditText; }
+
 
     }
 
@@ -89,8 +94,6 @@ public class RoleListAdapter extends RecyclerView.Adapter<RoleListAdapter.ViewHo
         View view = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.role_list_item, viewGroup, false);
 
-
-
         return new RoleListAdapter.ViewHolder(view);
     }
 
@@ -101,8 +104,8 @@ public class RoleListAdapter extends RecyclerView.Adapter<RoleListAdapter.ViewHo
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
         viewHolder.getTextView().setText(localDataSet.get(position).first.name());
-
-
+        viewHolder.getMinEditText().setText(String.valueOf(localDataSet.get(position).second[0]));
+        viewHolder.getMaxEditText().setText(String.valueOf(localDataSet.get(position).second[1]));
     }
 
     // Return the size of your dataset (invoked by the layout manager)
